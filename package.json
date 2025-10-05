@@ -1,0 +1,20 @@
+{
+  "name": "pokedex-api",
+  "version": "1.0.0",
+  "description": "IGME-430 Project 1 Milestone",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "lint": "eslint ."
+  },
+  "author": "Sadia Ahmed",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.32.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
