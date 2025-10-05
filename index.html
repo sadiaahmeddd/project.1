@@ -1,1 +1,91 @@
-jjjj
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Pokédex API (Milestone)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Pokédex API</h1>
+
+  <section class="box">
+    <h2>Search</h2>
+    <form id="searchForm">
+      <input id="qName" placeholder="name (e.g., pika)" />
+      <select id="qType">
+        <option value="">-- any type --</option>
+      </select>
+      <button>Go</button>
+    </form>
+  </section>
+
+  <section class="box">
+    <h2>Add Pokémon (name + type)</h2>
+    <form id="addForm">
+      <input id="newName" placeholder="name" required />
+      <input id="newType" placeholder="type (e.g., Normal)" required />
+      <button>Add</button>
+    </form>
+    <div id="addMsg"></div>
+  </section>
+
+  <section class="box">
+    <h2>Results</h2>
+    <div id="list"></div>
+  </section>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    async function loadTypes() {
+      const r = await fetch('/api/types', { headers: { Accept: 'application/json' } });
+      const data = await r.json(); // {data: [...]}
+      data.data.forEach(t => {
+        const o = document.createElement('option');
+        o.value = t; o.textContent = t;
+        $('qType').appendChild(o);
+      });
+    }
+
+    async function search() {
+      const name = $('qName').value.trim();
+      const type = $('qType').value.trim();
+      let url = '/api/pokemon';
+      const qs = [];
+      if (name) qs.push('name=' + encodeURIComponent(name));
+      if (type) qs.push('type=' + encodeURIComponent(type));
+      if (qs.length) url += '?' + qs.join('&');
+
+      const r = await fetch(url, { headers: { Accept: 'application/json' } });
+      const data = await r.json(); // {data:[...]}
+      $('list').innerHTML = data.data.map(p =>
+        `<div class="card">
+          <img src="${p.img}" alt="${p.name}">
+          <h3>${p.name}</h3>
+          <p>${(p.type||[]).join(', ')}</p>
+        </div>`).join('');
+    }
+
+    async function addPokemon(e) {
+      e.preventDefault();
+      const name = $('newName').value.trim();
+      const type = $('newType').value.trim();
+      const r = await fetch('/api/pokemon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ name, type: [type] })
+      });
+      $('addMsg').textContent = r.status === 201 ? '✅ Added' : '❌ Error';
+      if (r.status === 201) { $('addForm').reset(); search(); }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadTypes();
+      $('searchForm').addEventListener('submit', e => { e.preventDefault(); search(); });
+      $('addForm').addEventListener('submit', addPokemon);
+      search();
+    });
+  </script>
+</body>
+</html>
