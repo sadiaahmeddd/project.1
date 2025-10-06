@@ -5,35 +5,36 @@ const path = require('path');
 const url = require('url');
 const querystring = require('querystring');
 
-/* ---------------- Data files  ---------------- */
+/* -Data files- */
 const DATA_DIR = path.join(__dirname, 'data');
 const POKE_PATH = path.join(DATA_DIR, 'pokedex.json');       // full objects
-const TYPES_PATH = path.join(DATA_DIR, 'types.json');         // ["Grass","Fire",...]
-const WEAK_PATH = path.join(DATA_DIR, 'weaknesses.json');     // ["Fire","Rock",...]
-
+const TYPES_PATH = path.join(DATA_DIR, 'types.json');         // "Grass","Fire
+const WEAK_PATH = path.join(DATA_DIR, 'weaknesses.json');     // "Fire","Rock"
+//read files
 let POKEMON = JSON.parse(fs.readFileSync(POKE_PATH, 'utf8'));
 const TYPES = JSON.parse(fs.readFileSync(TYPES_PATH, 'utf8'));
 const WEAKNESSES = JSON.parse(fs.readFileSync(WEAK_PATH, 'utf8'));
 
-/* ------------------------------- tiny helpers ------------------------------- */
+/* - tiny helpers - */
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8'
 };
-
+//normaak response by default
+//took help from copilot to properly write this
 function send(res, status, obj, type = 'application/json; charset=utf-8') {
   const body = typeof obj === 'string' ? obj : JSON.stringify(obj);
   res.writeHead(status, { 'Content-Type': type, 'Content-Length': Buffer.byteLength(body) });
   res.end(body);
 }
-
+//head response
 function head(res, status, type = 'application/json; charset=utf-8') {
   res.writeHead(status, { 'Content-Type': type, 'Content-Length': 0 });
   res.end();
 }
-
+//did get stuck and took help from youtube tutorials 
 function parseBody(req) {
   return new Promise((resolve, reject) => {
     let raw = '';
@@ -50,12 +51,12 @@ function parseBody(req) {
   });
 }
 
-/* ---------------------------------- API ------------------------------------ */
+/* -API -*/
 async function handleApi(req, res, parsed) {
   const { pathname, query } = parsed;
   const isHEAD = req.method === 'HEAD';
 
-  // GET/HEAD /api/pokemon  (supports ?name=, ?type=, ?limit=)
+  // GET/HEAD /api/pokemon  
   if (pathname === '/api/pokemon' && (req.method === 'GET' || isHEAD)) {
     let data = POKEMON;
     if (query.name) data = data.filter(p => p.name.toLowerCase().includes(String(query.name).toLowerCase()));
@@ -120,7 +121,7 @@ async function handleApi(req, res, parsed) {
   return isHEAD ? head(res, 404) : send(res, 404, { error: 'not found' });
 }
 
-/* ------------------------------ static files -------------------------------- */
+/* static files  */
 function handleStatic(req, res, parsed) {
     const rel = parsed.pathname === '/' ? 'index.html' : parsed.pathname.replace(/^\//, '');
     const tryPaths = [
@@ -144,12 +145,14 @@ function handleStatic(req, res, parsed) {
     send(res, 404, { error: 'not found' });
   }
   
-/* --------------------------------- server ----------------------------------- */
+/* - server - */
 const server = http.createServer((req, res) => {
   const parsed = url.parse(req.url, true);
   if (parsed.pathname.startsWith('/api/')) return handleApi(req, res, parsed);
   return handleStatic(req, res, parsed);
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`http://localhost:${PORT}`));
+//http://localhost:3000/
+server.listen(port, () => {
+    console.log(`Server running at http://localhost:${3000}/`);
+})
