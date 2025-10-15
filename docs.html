@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pokédex API Documentation</title>
+</head>
+<body>
+  <h1>Pokédex API Documentation</h1>
+
+  <p>
+    <a href="index.html">Main Client</a> |
+    <a href="tester.html">Endpoint Tester</a>
+  </p>
+
+  <h2>Base URL</h2>
+  <p>http://localhost:3000/api</p>
+  <p>All endpoints return JSON and support GET and HEAD.  
+     POST requests accept either JSON or x-www-form-urlencoded bodies.</p>
+
+  <h2>GET /api/pokemon</h2>
+  <p>Returns a list of Pokémon. Optional query parameters:</p>
+  <ul>
+    <li>name – partial match (case-insensitive)</li>
+    <li>type – exact match (e.g. Fire)</li>
+    <li>limit – limit number of results</li>
+  </ul>
+  <p>Example:</p>
+  <pre>GET /api/pokemon?type=Fire&limit=3
+→ { "count": 3, "data": [ ... ] }</pre>
+
+  <h2>POST /api/pokemon</h2>
+  <p>Adds a new Pokémon. Requires "name" and "type".</p>
+  <p>Example body:</p>
+  <pre>{
+  "name": "Testmon",
+  "type": ["Normal"]
+}</pre>
+  <p>Response (201): The created Pokémon object.</p>
+
+  <h2>GET /api/pokemon/:id</h2>
+  <p>Returns a single Pokémon by ID.</p>
+  <p>Example:</p>
+  <pre>GET /api/pokemon/25
+→ { "id": 25, "name": "Pikachu", "type": ["Electric"] }</pre>
+
+  <h2>POST /api/pokemon/:id</h2>
+  <p>Edits a Pokémon’s details. Partial update of fields such as name, height, weight, or weaknesses.</p>
+  <p>Example body:</p>
+  <pre>{ "height": "0.50 m" }</pre>
+  <p>Response: 204 No Content on success.</p>
+
+  <h2>GET /api/types</h2>
+  <p>Returns a list of all Pokémon types.</p>
+  <p>Example:</p>
+  <pre>GET /api/types
+→ { "data": ["Fire","Water","Grass", ...] }</pre>
+
+  <h2>GET /api/weaknesses</h2>
+  <p>Returns a list of all Pokémon weaknesses.</p>
+  <p>Example:</p>
+  <pre>GET /api/weaknesses
+→ { "data": ["Rock","Ice","Fire", ...] }</pre>
+
+  <h2>GET /api/random</h2>
+  <p>Returns one random Pokémon.</p>
+  <p>Example:</p>
+  <pre>GET /api/random
+→ { "id": 4, "name": "Charmander", "type": ["Fire"] }</pre>
+
+  <h2>POST /api/delete/:id</h2>
+  <p>Deletes a Pokémon from memory (soft delete). No response body.</p>
+  <p>Example:</p>
+  <pre>POST /api/delete/25
+→ 204 No Content</pre>
+
+  <h2>POST /api/save</h2>
+  <p>Saves the current dataset to data/pokedex.runtime.json.</p>
+  <p>Example:</p>
+  <pre>POST /api/save
+→ { "saved": true, "path": "data/pokedex.runtime.json" }</pre>
+
+  
+</body>
+</html>

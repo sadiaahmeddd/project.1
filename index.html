@@ -1,90 +1,150 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Pokédex API (Milestone)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <title>Pokédex API Client</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <h1>Pokédex API</h1>
+  <header>
+    <h1>Pokédex API Client</h1>
+    <nav>
+      <a href="docs.html"> API Docs</a> |
+      <a href="tester.html">Endpoint Tester</a>
+    </nav>
+  </header>
+ 
+  <main>
+    <section class="box">
+      <h2>Search Pokémon</h2>
+      <form id="searchForm">
+        <input type="text" id="nameInput" placeholder="Search by name" />
+        <select id="typeSelect">
+          <option value="">-- Filter by Type --</option>
+        </select>
+        <button type="submit">Search</button>
+      </form>
+    </section>
 
-  <section class="box">
-    <h2>Search</h2>
-    <form id="searchForm">
-      <input id="qName" placeholder="name (e.g., pika)" />
-      <select id="qType">
-        <option value="">-- any type --</option>
-      </select>
-      <button>Go</button>
-    </form>
-  </section>
+    <section class="box">
+      <h2>Add Pokémon</h2>
+      <form id="addForm">
+        <input type="text" id="addName" placeholder="Name" required />
+        <input type="text" id="addType" placeholder="Type (e.g. Fire, Water)" required />
+        <button type="submit">Add</button>
+      </form>
+      <p id="addMsg"></p>
+    </section>
 
-  <section class="box">
-    <h2>Add Pokémon (name + type)</h2>
-    <form id="addForm">
-      <input id="newName" placeholder="name" required />
-      <input id="newType" placeholder="type (e.g., Normal)" required />
-      <button>Add</button>
-    </form>
-    <div id="addMsg"></div>
-  </section>
+    <section class="box">
+      <h2>Results</h2>
+      <div id="pokemonList"></div>
+    </section>
 
-  <section class="box">
-    <h2>Results</h2>
-    <div id="list"></div>
-  </section>
+    <section class="box">
+      <h2>Extras</h2>
+      <button id="randomBtn">Get Random Pokémon</button>
+      <button id="saveBtn">Save Current Data</button>
+      <p id="extraMsg"></p>
+    </section>
+  </main>
+
+  <footer>
+    <p>IGME-430 Project 1 — Sadia Ahmed | 
+      <a href="docs.html">Docs</a> | 
+      <a href="tester.html">Tester</a>
+    </p>
+  </footer>
 
   <script>
     const $ = (id) => document.getElementById(id);
 
+    //  Load dropdown 
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadTypes();
+      await searchPokemon();
+    });
+
+    // Load all Pokémon types 
     async function loadTypes() {
-      const r = await fetch('/api/types', { headers: { Accept: 'application/json' } });
-      const data = await r.json(); // {data: [...]}
-      data.data.forEach(t => {
-        const o = document.createElement('option');
-        o.value = t; o.textContent = t;
-        $('qType').appendChild(o);
+      const res = await fetch('/api/types', { headers: { Accept: 'application/json' } });
+      const data = await res.json();
+      data.data.forEach((t) => {
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = t;
+        $('typeSelect').appendChild(opt);
       });
     }
 
-    async function search() {
-      const name = $('qName').value.trim();
-      const type = $('qType').value.trim();
-      let url = '/api/pokemon';
-      const qs = [];
-      if (name) qs.push('name=' + encodeURIComponent(name));
-      if (type) qs.push('type=' + encodeURIComponent(type));
-      if (qs.length) url += '?' + qs.join('&');
+    // Search 
+    $('searchForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      await searchPokemon();
+    });
 
-      const r = await fetch(url, { headers: { Accept: 'application/json' } });
-      const data = await r.json(); // {data:[...]}
-      $('list').innerHTML = data.data.map(p =>
-        `<div class="card">
+    async function searchPokemon() {
+      const name = $('nameInput').value.trim();
+      const type = $('typeSelect').value.trim();
+      let url = '/api/pokemon';
+      const params = [];
+      if (name) params.push(`name=${encodeURIComponent(name)}`);
+      if (type) params.push(`type=${encodeURIComponent(type)}`);
+      if (params.length) url += '?' + params.join('&');
+
+      const res = await fetch(url, { headers: { Accept: 'application/json' } });
+      const data = await res.json();
+      const list = $('pokemonList');
+      list.innerHTML = '';
+      data.data.forEach((p) => {
+        const card = document.createElement('div');
+        card.classList.add('poke-card');
+        card.innerHTML = `
           <img src="${p.img}" alt="${p.name}">
           <h3>${p.name}</h3>
-          <p>${(p.type||[]).join(', ')}</p>
-        </div>`).join('');
+          <p>Type: ${p.type.join(', ')}</p>
+        `;
+        list.appendChild(card);
+      });
     }
 
-    async function addPokemon(e) {
+    // Add Pokémon 
+    $('addForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const name = $('newName').value.trim();
-      const type = $('newType').value.trim();
-      const r = await fetch('/api/pokemon', {
+      const name = $('addName').value.trim();
+      const types = $('addType').value.split(',').map(t => t.trim());
+      const res = await fetch('/api/pokemon', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ name, type: [type] })
+        body: JSON.stringify({ name, type: types }),
       });
-      $('addMsg').textContent = r.status === 201 ? '✅ Added' : '❌ Error';
-      if (r.status === 201) { $('addForm').reset(); search(); }
-    }
+      if (res.status === 201) {
+        $('addMsg').textContent = ' Pokémon added successfully!';
+        $('addForm').reset();
+        await searchPokemon();
+      } else {
+        $('addMsg').textContent = ' Error adding Pokémon.';
+      }
+    });
 
-    document.addEventListener('DOMContentLoaded', () => {
-      loadTypes();
-      $('searchForm').addEventListener('submit', e => { e.preventDefault(); search(); });
-      $('addForm').addEventListener('submit', addPokemon);
-      search();
+    //  Random Pokémon 
+    $('randomBtn').addEventListener('click', async () => {
+      const res = await fetch('/api/random', { headers: { Accept: 'application/json' } });
+      const data = await res.json();
+      $('pokemonList').innerHTML = `
+        <div class="poke-card">
+          <img src="${data.img}" alt="${data.name}">
+          <h3>${data.name}</h3>
+          <p>Type: ${data.type.join(', ')}</p>
+        </div>`;
+    });
+
+   
+    $('saveBtn').addEventListener('click', async () => {
+      const res = await fetch('/api/save', { method: 'POST', headers: { Accept: 'application/json' } });
+      const data = await res.json();
+      $('extraMsg').textContent = `✅ Data saved to ${data.path}`;
     });
   </script>
 </body>
