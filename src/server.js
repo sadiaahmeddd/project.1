@@ -1,5 +1,10 @@
 /* eslint-disable no-console */
 
+/*
+  This is the actual HTTP server.
+  It decides: "is this an /api/ request?" → route it,
+  otherwise try to serve a static file.
+*/
 
 /* eslint-disable no-console */
 const http = require('http');
